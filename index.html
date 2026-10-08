@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Driefasige AC-generator</title><style>:root {
+<html lang="nl"><head><script src="klemmen.js" defer></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Driefasige AC-generator</title><style>:root {
   color-scheme: light dark;
   background-color: var(
     --background,
@@ -1499,13 +1499,13 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
     #ac-three .phase-swatch{display:inline-block;width:20px;height:3px;vertical-align:middle;margin-right:6px;background:var(--phase)}
     @media(max-width:650px){#ac-three .plots{grid-template-columns:1fr}}
   </style>
-  <h1>Driefasige AC-generator</h1><p>Drie spoelassen, 120° verschoven. Gebruik <strong>Pauzeren</strong>, <strong>Stap +30°</strong> of de schuifbalk om de rotor te onderzoeken.</p>
+  <h1>Driefasige AC-generator</h1><nav class="viz-controls" aria-label="Hoofdnavigatie"><a class="btn" href="index.html" aria-current="page">Generator</a><a class="btn" href="theorie.html#wetten">Wetten &amp; formules</a><a class="btn" href="theorie.html#vectoren">Vectoren</a><a class="btn" href="theorie.html#rekenen">Rekenlab</a><a class="btn" href="theorie.html#oefeningen">Oefeningen</a></nav><p>Drie spoelassen, 120° verschoven. Gebruik <strong>Pauzeren</strong>, <strong>Stap +30°</strong> of de schuifbalk om de rotor te onderzoeken.</p>
   <div class="viz-controls">
     <button class="btn btn-primary" type="button" id="ac-play">Pauzeren</button>
     <button class="btn" type="button" id="ac-step">Stap +30°</button>
     <label class="form-label">Frequentie (Hz)<input class="form-control" id="ac-f" type="number" min="10" max="60" step="1" value="50"></label>
-    <label class="form-label">Fasespanning effectief (V)<input class="form-control" id="ac-u" type="number" min="10" max="300" step="10" value="230"></label>
-    <label class="form-label">Bekijken<select class="form-select" id="ac-phase"><option value="0">Flux van L1</option><option value="1">Flux van L2</option><option value="2">Flux van L3</option></select></label>
+    <label class="form-label">Wikkelingsspanning effectief (V)<input class="form-control" id="ac-u" type="number" min="10" max="300" step="10" value="230"></label>
+    <label class="form-label">Bekijken<select class="form-select" id="ac-phase"><option value="0">Flux U · U1–U2</option><option value="1">Flux V · V1–V2</option><option value="2">Flux W · W1–W2</option></select></label>
   </div>
   <div class="values tabular-nums"><span id="ac-spec"></span><span id="ac-rpm"></span></div>
   <div class="plots">
@@ -1516,31 +1516,33 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
   <div class="values tabular-nums" id="ac-live-values"></div>
   <div id="ac-detail" aria-live="polite"></div>
   <div class="text-small text-muted">Tweepolig model · animatie 200× vertraagd · flux relatief (Φ / Φmax)</div>
+<section aria-label="Klemmen en verbindingen"><h2>Wikkelingen en klemmenbord</h2><p><strong>U1–U2</strong> = wikkeling U; <strong>V1–V2</strong> = wikkeling V; <strong>W1–W2</strong> = wikkeling W. Het cijfer 1 is het begin, het cijfer 2 het einde volgens de gekozen wikkelingspolariteit. L1, L2 en L3 zijn de uitgangslijnen.</p><label class="form-label">Verbinding<select class="form-select" id="terminal-mode"><option value="star">Ster (Y)</option><option value="delta">Driehoek (Δ)</option><option value="open">Open wikkelingen</option></select></label><svg id="terminal-svg" role="img" aria-label="Zes klemmen met de beginpunten bovenaan en W2 U2 V2 onderaan"></svg><p id="terminal-details" class="tabular-nums" aria-live="polite" style="white-space:pre-line"></p><p class="text-small">De bruggen veranderen de verbinding van de ideale generatorwikkelingen. De grafiek blijft de spanning over elke wikkeling tonen. Bij gelijkblijvende wikkelingsspanning verandert de lijnspanning; dit is niet hetzelfde als een motor omschakelen op een vaste netspanning.</p><p><a href="theorie.html#wetten">Meer over klemmen, ster en driehoek</a></p></section>
   <script>
   (()=>{
     const root=document.getElementById('ac-three'),q=s=>root.querySelector(s),NS='http://www.w3.org/2000/svg';
+    const names=['U','V','W'];
     const colors=['var(--viz-series-1)','var(--viz-series-2)','var(--viz-series-3)'];
     let angle=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,last=0,f=50,rms=230,selected=0;
     const rad=d=>d*Math.PI/180,fmt=n=>Math.abs(n)<.05?'0':n.toLocaleString('nl-BE',{maximumFractionDigits:1});
     const add=(parent,tag,attrs={},txt)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(txt!==undefined)e.textContent=txt;parent.appendChild(e);return e};
     const line=(s,x1,y1,x2,y2,extra={})=>add(s,'line',{x1,y1,x2,y2,stroke:'var(--border)',...extra});
     function drawRotor(){
-      const s=q('#ac-rotor'),w=Math.max(280,s.parentElement.clientWidth),h=280,cx=w/2,cy=143,r=92;s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
-      add(s,'circle',{cx,cy,r:112,fill:'none',stroke:'var(--border)'});
+      const s=q('#ac-rotor'),w=Math.max(280,s.parentElement.clientWidth),h=320,cx=w/2,cy=160,r=82;s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
+      add(s,'circle',{cx,cy,r:106,fill:'none',stroke:'var(--border)'});
       for(let i=0;i<3;i++){
         const a=rad(i*120),x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
         line(s,cx,cy,x,y,{'stroke-dasharray':'3 4'});
         const g=add(s,'g',{transform:`translate(${x} ${y}) rotate(${i*120})`});
         add(g,'rect',{x:-15,y:-31,width:30,height:62,rx:10,fill:'none',stroke:colors[i],'stroke-width':i===selected?4:2});
         for(let j=-8;j<=8;j+=8)line(g,j,-28,j,28,{stroke:colors[i],'stroke-width':2});
-        const lx=cx+132*Math.cos(a),ly=cy+132*Math.sin(a);add(s,'text',{x:lx,y:ly,'text-anchor':i===0?'end':'middle'},`L${i+1}`);
+        const lx=x,ly=y+(i===2?-45:48);add(s,'text',{x:lx,y:ly,'text-anchor':'middle'},`${names[i]}1–${names[i]}2`);
       }
       const rotor=add(s,'g',{transform:`translate(${cx} ${cy}) rotate(${angle})`});
       add(rotor,'rect',{x:-52,y:-18,width:104,height:36,rx:6,fill:'var(--muted)',stroke:'var(--foreground)'});
       add(rotor,'text',{x:-29,y:5,'text-anchor':'middle'},'S');add(rotor,'text',{x:29,y:5,'text-anchor':'middle'},'N');
       line(rotor,52,0,78,0,{stroke:'var(--foreground)','stroke-width':2});add(rotor,'path',{d:'M72,-5 L78,0 L72,5',fill:'none',stroke:'var(--foreground)','stroke-width':2});
       add(s,'circle',{cx,cy,r:4,fill:'var(--foreground)'});add(s,'text',{x:cx,y:18,'text-anchor':'middle'},'3 spoelassen · 120°');
-      add(s,'text',{x:cx,y:275,'text-anchor':'middle'},'N–S: draaiende magneet');
+      add(s,'text',{x:cx,y:315,'text-anchor':'middle'},'N–S: draaiende magneet');
     }
     function drawWave(){
       const s=q('#ac-wave'),w=Math.max(280,s.parentElement.clientWidth),h=280,x0=60,x1=w-18,y0=32,y1=160,fy0=200,fy1=248,peak=rms*Math.SQRT2;s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
@@ -1553,7 +1555,7 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
         let path='';for(let d=0;d<=360;d+=2)path+=`${d?'L':'M'}${x(d)},${y(peak*Math.sin(rad(d-i*120)))}`;
         add(s,'path',{d:path,fill:'none',stroke:colors[i],'stroke-width':2.3});add(s,'circle',{cx:x(angle),cy:y(peak*Math.sin(rad(angle-i*120))),r:4,fill:colors[i]});
       }
-      add(s,'text',{x:x0,y:194},`Flux L${selected+1} / Φmax`);
+      add(s,'text',{x:x0,y:194},`Flux ${names[selected]} / Φmax`);
       [1,0,-1].forEach(v=>{line(s,x0,fy(v),x1,fy(v));add(s,'text',{x:x0-8,y:fy(v)+4,'text-anchor':'end'},String(v))});
       let path='';for(let d=0;d<=360;d+=2)path+=`${d?'L':'M'}${x(d)},${fy(Math.cos(rad(d-selected*120)))}`;
       add(s,'path',{d:path,fill:'none',stroke:colors[selected],'stroke-width':2,'stroke-dasharray':'5 3'});
@@ -1563,10 +1565,10 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
     }
     function draw(announce=false){
       drawRotor();drawWave();q('#ac-deg').textContent=`${fmt(angle)}°`;q('#ac-angle').value=angle;
-      q('#ac-spec').textContent=`${fmt(rms)} V effectief · ±${fmt(rms*Math.SQRT2)} V piek`;
+      q('#ac-spec').textContent=`${fmt(rms)} V per wikkeling effectief · ±${fmt(rms*Math.SQRT2)} V piek`;
       q('#ac-rpm').textContent=`${f} Hz · ${fmt(1000/f)} ms/periode · ${f*60} omw/min`;
-      q('#ac-live-values').innerHTML=colors.map((c,i)=>`<span><span class="phase-swatch" style="--phase:${c}"></span>L${i+1}: ${fmt(rms*Math.SQRT2*Math.sin(rad(angle-120*i)))} V</span>`).join('');
-      if(announce){const a=rad(angle-selected*120),flux=Math.cos(a),u=Math.sin(a);let detail=Math.abs(u)<.015?'Flux maximaal in grootte: de spanning is nu nul.':Math.abs(flux)<.015?'Flux is nul en verandert het snelst: de spanning is maximaal in grootte.':'De flux verandert: er ontstaat een spanning. De polariteit wisselt elke halve omwenteling.';q('#ac-detail').textContent=`L${selected+1} · ${detail}`;}
+      q('#ac-live-values').innerHTML=colors.map((c,i)=>`<span><span class="phase-swatch" style="--phase:${c}"></span>${names[i]} (${names[i]}1–${names[i]}2): ${fmt(rms*Math.SQRT2*Math.sin(rad(angle-120*i)))} V</span>`).join('');
+      if(announce){const a=rad(angle-selected*120),flux=Math.cos(a),u=Math.sin(a);let detail=Math.abs(u)<.015?'Flux maximaal in grootte: de spanning is nu nul.':Math.abs(flux)<.015?'Flux is nul en verandert het snelst: de spanning is maximaal in grootte.':'De flux verandert: er ontstaat een spanning. De polariteit wisselt elke halve omwenteling.';q('#ac-detail').textContent=`${names[selected]} (${names[selected]}1–${names[selected]}2) · ${detail}`;}
       q('#ac-play').textContent=playing?'Pauzeren':'Afspelen';
     }
     q('#ac-play').onclick=()=>{playing=!playing;draw(true)};
@@ -1579,4 +1581,4 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
   })();
   </script>
 </div>
-<section aria-label="Uitleg"><h2>Wat zie je?</h2><p>De draaiende magneet verandert de magnetische flux door de spoelen. Door die verandering ontstaat spanning. Bij maximale flux is de spanning nul; wanneer de flux door nul gaat, verandert ze het snelst en is de spanning maximaal in grootte.</p><p>De drie spanningen zijn 120° verschoven. Bij 50 Hz duurt één periode 20 ms. Een sinusspanning van 230 V effectief heeft een piek van ongeveer 325 V.</p><p>Dit is een vereenvoudigd tweepolig model: 50 Hz komt overeen met 3000 omw/min. De animatie is 200× vertraagd. Frequentie en effectieve spanning zijn onafhankelijk instelbaar; dat veronderstelt een aangepaste magnetische bekrachtiging. De fluxgrafiek toont een relatieve waarde, geen weber. De getekende spoelen geven de spoelassen schematisch weer.</p><p>Offline: bewaar dit bestand en open het in je browser. Er zijn geen internetverbinding, server of installatie nodig.</p></section></body></html>
+<section aria-label="Uitleg"><h2>Wat zie je?</h2><p>De draaiende magneet verandert de magnetische flux door de spoelen. Door die verandering ontstaat spanning. Bij maximale flux is de spanning nul; wanneer de flux door nul gaat, verandert ze het snelst en is de spanning maximaal in grootte.</p><p>De drie spanningen zijn 120° verschoven. Bij 50 Hz duurt één periode 20 ms. Een sinusspanning van 230 V effectief heeft een piek van ongeveer 325 V.</p><p>Dit is een vereenvoudigd tweepolig model: 50 Hz komt overeen met 3000 omw/min. De animatie is 200× vertraagd. Frequentie en effectieve spanning zijn onafhankelijk instelbaar; dat veronderstelt een aangepaste magnetische bekrachtiging. De fluxgrafiek toont een relatieve waarde, geen weber. De getekende spoelen geven de spoelassen schematisch weer. U, V en W zijn de wikkelingen; L1, L2 en L3 benoemen de uitgangslijnen.</p><p>Offline: bewaar de volledige uitgepakte map en open index.html in je browser. Er zijn geen internetverbinding, server of installatie nodig.</p></section></body></html>
