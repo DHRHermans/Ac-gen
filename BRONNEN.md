@@ -26,7 +26,7 @@ Eigen Nederlandstalige uitleg en eigen rekenvoorbeelden. De onderstaande primair
 
 ## Wat de modellen wel en niet voorstellen
 
-- De rotoranimatie toont een tweepolige magneet en drie schematische spoelassen. De spoeltekening is geen constructietekening of ruimtelijk veldmodel.
+- De rotoranimatie toont een tweepolige magneet en zes actieve spoelzijden. Per wikkeling staan de zijden diametraal tegenover elkaar. Zij staan 90° ten opzichte van de spoelnormaal; de spoelnormalen staan 120° uit elkaar. De spoeltekening is geen constructietekening of ruimtelijk veldmodel.
 - De rotoranimatie volgt relatieve flux `cos(θ)` en spanning `sin(θ)` met dezelfde hoekreferentie; de wikkelingen zijn 120° elektrisch verschoven.
 - U1–U2, V1–V2 en W1–W2 zijn windingparen. L1, L2 en L3 zijn lijnnamen. Spanning uU is hier van U1 naar U2 gemeten, overeenkomstig de gekozen polariteit.
 - Op het klemmenbord is de bovenrij U1–V1–W1 en de onderrij W2–U2–V2. Ster koppelt U2, V2 en W2 samen; driehoek koppelt U1–W2, V1–U2 en W1–V2. De labels bepalen de verbinding, niet de plaats op een werkelijk bord.

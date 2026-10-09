@@ -1,4 +1,4 @@
-# GeneratorLab · offline editie 2
+# GeneratorLab · offline editie 3
 
 Nederlandstalige interactieve driefasige generator met wetten, formules, voorbeelden, vectorontbindingen, rekenlabs en oefeningen met feedback.
 
@@ -49,3 +49,7 @@ De formulerendering gebruikt native MathML: `U_eff` wordt een subscript, `I^2` e
 ## Belangrijk modelverschil
 
 De rotoranimatie blijft een tweepolige ideale generator. Zij laat de wikkelingsspanning onafhankelijk van f instellen en veronderstelt daarmee aangepaste bekrachtiging. De rekenlabs tonen wat bij vaste flux gebeurt en kunnen meerdere poolparen berekenen. De klemmenweergave laat de wikkelingsspanning gelijk en berekent de bijbehorende lijnspanning. De rekenlabs en vectorlabs wijzigen de rotorinstellingen niet.
+
+## Correctie in editie 3
+
+De rotortekening toont zes actieve spoelzijden: twee per winding, diametraal tegenover elkaar. De zijden staan 90° ten opzichte van de bijbehorende spoelnormaal; die normaal bepaalt de fluxfase. De normale richtingen van U, V en W staan 120° uit elkaar. U1–U2, V1–V2 en W1–W2 zijn klemreferenties voor deze windingen. Een boog toont de eindverbinding van de gekozen winding buiten het doorsnedevlak.

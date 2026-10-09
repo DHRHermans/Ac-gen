@@ -1509,7 +1509,7 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
   </div>
   <div class="values tabular-nums"><span id="ac-spec"></span><span id="ac-rpm"></span></div>
   <div class="plots">
-    <div><h3>Rotor en drie spoelen</h3><svg id="ac-rotor" role="img" aria-label="Schematische tweepolige rotor met drie spoelassen op 120 graden"></svg></div>
+    <div><h3>Rotor en zes spoelzijden</h3><svg id="ac-rotor" role="img" aria-label="Tweepolige rotor met zes actieve spoelzijden, per wikkeling diametraal tegenover elkaar"></svg></div>
     <div><h3>Spanning en magnetische flux</h3><svg id="ac-wave" role="img" aria-label="Drie sinusspanningen met 120 graden faseverschil en de flux van de geselecteerde spoel"></svg></div>
   </div>
   <div class="angle-control"><label class="form-label" for="ac-angle">Rotorhoek <span id="ac-deg" class="tabular-nums"></span></label><input class="form-range" id="ac-angle" type="range" min="0" max="360" step="1" value="0"></div>
@@ -1527,22 +1527,39 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
     const add=(parent,tag,attrs={},txt)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(txt!==undefined)e.textContent=txt;parent.appendChild(e);return e};
     const line=(s,x1,y1,x2,y2,extra={})=>add(s,'line',{x1,y1,x2,y2,stroke:'var(--border)',...extra});
     function drawRotor(){
-      const s=q('#ac-rotor'),w=Math.max(280,s.parentElement.clientWidth),h=320,cx=w/2,cy=160,r=82;s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
-      add(s,'circle',{cx,cy,r:106,fill:'none',stroke:'var(--border)'});
+      const s=q('#ac-rotor'),w=Math.max(280,s.parentElement.clientWidth),h=350,cx=w/2,cy=170,r=100;
+      s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
+      add(s,'title',{},'Zes actieve spoelzijden, met per wikkeling twee diametraal tegenoverliggende zijden');
+      add(s,'desc',{},'De actieve zijden van U, V en W staan per paar 180 graden uit elkaar. Hun spoelnormalen staan 120 graden uit elkaar. De klemnamen U1 U2, V1 V2 en W1 W2 verwijzen naar de bijbehorende windinguiteinden.');
+      add(s,'circle',{cx,cy,r:128,fill:'none',stroke:'var(--border)'});
+      // Side positions are perpendicular to the winding normal: axis + 90° and + 270°.
+      // The sinus/flux reference uses the normal, not the radial position of a conductor side.
       for(let i=0;i<3;i++){
-        const a=rad(i*120),x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
-        line(s,cx,cy,x,y,{'stroke-dasharray':'3 4'});
-        const g=add(s,'g',{transform:`translate(${x} ${y}) rotate(${i*120})`});
-        add(g,'rect',{x:-15,y:-31,width:30,height:62,rx:10,fill:'none',stroke:colors[i],'stroke-width':i===selected?4:2});
-        for(let j=-8;j<=8;j+=8)line(g,j,-28,j,28,{stroke:colors[i],'stroke-width':2});
-        const lx=x,ly=y+(i===2?-45:48);add(s,'text',{x:lx,y:ly,'text-anchor':'middle'},`${names[i]}1–${names[i]}2`);
+        const axis=i*120,side1=rad(axis+90),side2=rad(axis+270);
+        const x1=cx+r*Math.cos(side1),y1=cy+r*Math.sin(side1),x2=cx+r*Math.cos(side2),y2=cy+r*Math.sin(side2);
+        if(i===selected){
+          const outer=122,ax=cx+outer*Math.cos(side1),ay=cy+outer*Math.sin(side1),bx=cx+outer*Math.cos(side2),by=cy+outer*Math.sin(side2);
+          add(s,'path',{d:`M${x1},${y1} L${ax},${ay} A${outer},${outer} 0 0 1 ${bx},${by} L${x2},${y2}`,fill:'none',stroke:colors[i],'stroke-width':3,'data-end-turn':names[i]});
+          const a=rad(axis),nx=cx+114*Math.cos(a),ny=cy+114*Math.sin(a);
+          line(s,cx,cy,nx,ny,{stroke:colors[i],'stroke-dasharray':'4 4','stroke-width':1.5});
+          const tx=cx+94*Math.cos(a),ty=cy+94*Math.sin(a);
+          add(s,'text',{x:tx,y:ty-12,'text-anchor':'middle'},`n${names[i]}`);
+        }
+        for(let j=0;j<2;j++){
+          const a=j?side2:side1,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a),label=`${names[i]}${j+1}`;
+          const g=add(s,'g',{'data-coil-side':label,'data-winding':names[i],'data-side-angle':axis+90+j*180,'data-x':x,'data-y':y});
+          add(g,'circle',{cx:x,cy:y,r:17,fill:'var(--background)',stroke:colors[i],'stroke-width':i===selected?3:2});
+          add(g,'text',{x,y:y+4,'text-anchor':'middle'},label);
+        }
       }
       const rotor=add(s,'g',{transform:`translate(${cx} ${cy}) rotate(${angle})`});
       add(rotor,'rect',{x:-52,y:-18,width:104,height:36,rx:6,fill:'var(--muted)',stroke:'var(--foreground)'});
       add(rotor,'text',{x:-29,y:5,'text-anchor':'middle'},'S');add(rotor,'text',{x:29,y:5,'text-anchor':'middle'},'N');
       line(rotor,52,0,78,0,{stroke:'var(--foreground)','stroke-width':2});add(rotor,'path',{d:'M72,-5 L78,0 L72,5',fill:'none',stroke:'var(--foreground)','stroke-width':2});
-      add(s,'circle',{cx,cy,r:4,fill:'var(--foreground)'});add(s,'text',{x:cx,y:18,'text-anchor':'middle'},'3 spoelassen · 120°');
-      add(s,'text',{x:cx,y:315,'text-anchor':'middle'},'N–S: draaiende magneet');
+      add(s,'circle',{cx,cy,r:4,fill:'var(--foreground)'});
+      add(s,'text',{x:cx,y:18,'text-anchor':'middle'},'6 spoelzijden · elk paar tegenover elkaar');
+      add(s,'text',{x:cx,y:330,'text-anchor':'middle'},`Wikkeling ${names[selected]} · normaal n${names[selected]}`);
+      add(s,'text',{x:cx,y:347,'text-anchor':'middle'},'Boog: eindverbinding buiten dit vlak');
     }
     function drawWave(){
       const s=q('#ac-wave'),w=Math.max(280,s.parentElement.clientWidth),h=280,x0=60,x1=w-18,y0=32,y1=160,fy0=200,fy1=248,peak=rms*Math.SQRT2;s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.innerHTML='';
@@ -1581,4 +1598,4 @@ body{max-width:1100px;margin:auto;padding:24px}section{margin-top:24px}p{max-wid
   })();
   </script>
 </div>
-<section aria-label="Uitleg"><h2>Wat zie je?</h2><p>De draaiende magneet verandert de magnetische flux door de spoelen. Door die verandering ontstaat spanning. Bij maximale flux is de spanning nul; wanneer de flux door nul gaat, verandert ze het snelst en is de spanning maximaal in grootte.</p><p>De drie spanningen zijn 120° verschoven. Bij 50 Hz duurt één periode 20 ms. Een sinusspanning van 230 V effectief heeft een piek van ongeveer 325 V.</p><p>Dit is een vereenvoudigd tweepolig model: 50 Hz komt overeen met 3000 omw/min. De animatie is 200× vertraagd. Frequentie en effectieve spanning zijn onafhankelijk instelbaar; dat veronderstelt een aangepaste magnetische bekrachtiging. De fluxgrafiek toont een relatieve waarde, geen weber. De getekende spoelen geven de spoelassen schematisch weer. U, V en W zijn de wikkelingen; L1, L2 en L3 benoemen de uitgangslijnen.</p><p>Offline: bewaar de volledige uitgepakte map en open index.html in je browser. Er zijn geen internetverbinding, server of installatie nodig.</p></section></body></html>
+<section aria-label="Uitleg"><h2>Wat zie je?</h2><p>De draaiende magneet verandert de magnetische flux door de spoelen. Door die verandering ontstaat spanning. Bij maximale flux is de spanning nul; wanneer de flux door nul gaat, verandert ze het snelst en is de spanning maximaal in grootte.</p><p>De drie spanningen zijn 120° verschoven. Bij 50 Hz duurt één periode 20 ms. Een sinusspanning van 230 V effectief heeft een piek van ongeveer 325 V.</p><p>Dit is een vereenvoudigd tweepolig model: 50 Hz komt overeen met 3000 omw/min. De animatie is 200× vertraagd. Frequentie en effectieve spanning zijn onafhankelijk instelbaar; dat veronderstelt een aangepaste magnetische bekrachtiging. De fluxgrafiek toont een relatieve waarde, geen weber. Elke wikkeling heeft twee actieve spoelzijden die in dit tweepolige model 180° tegenover elkaar liggen. De drie spoelnormalen staan 120° uit elkaar. De boog toont schematisch een eindverbinding buiten het doorsnedevlak. De klemnamen bij de spoelzijden zijn verwijzingen naar de windinguiteinden; de aansluitklemmen zelf zitten op het klemmenbord. U, V en W zijn de wikkelingen; L1, L2 en L3 benoemen de uitgangslijnen.</p><p>Offline: bewaar de volledige uitgepakte map en open index.html in je browser. Er zijn geen internetverbinding, server of installatie nodig.</p></section></body></html>
